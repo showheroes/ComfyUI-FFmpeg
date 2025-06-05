@@ -12,19 +12,20 @@ class Video2Frames:
     def INPUT_TYPES(cls):
         return {
             "required": { 
-                "video_path": ("STRING", {"default":"C:/Users/Desktop/video.mp4",}),
-                "output_path": ("STRING", {"default":"C:/Users/Desktop/output",}),
-                "frames_max_width":("INT", {"default": 0, "min": 0, "max": 1920}),
+                "video_path": ("STRING", {"default": "C:/Users/Desktop/video.mp4"}),
+                "output_path": ("STRING", {"default": "C:/Users/Desktop/output"}),
+                "frames_max_width": ("INT", {"default": 0, "min": 0, "max": 1920}),
+                "fps": ("INT", {"default": 0, "min": 0, "max": 100}),
             },
         }
 
-    RETURN_TYPES = ("STRING", "FLOAT", "STRING", "INT","STRING")
-    RETURN_NAMES = ("frame_path", "fps", "audio_path", "total_frames","output_path")
+    RETURN_TYPES = ("STRING", "FLOAT", "STRING", "INT", "STRING")
+    RETURN_NAMES = ("frame_path", "fps", "audio_path", "total_frames", "output_path")
     FUNCTION = "video2frames"
     OUTPUT_NODE = True
     CATEGORY = "🔥FFmpeg"
   
-    def video2frames(self, video_path, output_path, frames_max_width):
+    def video2frames(self, video_path, output_path, frames_max_width, fps):
         try:
             video_path = os.path.abspath(video_path).strip()
             output_path = os.path.abspath(output_path).strip()
@@ -104,10 +105,15 @@ class Video2Frames:
             else:
                 out_width = width
                 out_height = height
-            
+
+            video_filter_param = f'scale={out_width}:{out_height}'
+
+            if fps > 0:
+                video_filter_param += f',fps={fps}'
+
             command = [
                 'ffmpeg', '-i', video_path,  # 输入视频路径
-                '-vf', f'scale={out_width}:{out_height}',  # 使用scale滤镜缩放帧
+                '-vf', video_filter_param,  # 使用scale滤镜缩放帧
                 os.path.join(frame_path, 'frame_%08d.png')  # 输出帧路径
             ]
             # 执行命令并检查错误

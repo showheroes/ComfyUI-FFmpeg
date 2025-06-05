@@ -21,7 +21,7 @@ class CreateCustomOutputDir:
         }
 
     RETURN_TYPES = (IO.STRING,)
-    RETURN_NAMES = ("output_path")
+    RETURN_NAMES = ("output_path",)
     FUNCTION = "createCustomOutputDir"
     OUTPUT_NODE = True
     CATEGORY = "🔥FFmpeg"
