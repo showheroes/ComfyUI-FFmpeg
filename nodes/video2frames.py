@@ -15,7 +15,13 @@ class Video2Frames:
                 "video_path": ("STRING", {"default": "C:/Users/Desktop/video.mp4"}),
                 "output_path": ("STRING", {"default": "C:/Users/Desktop/output"}),
                 "frames_max_width": ("INT", {"default": 0, "min": 0, "max": 1920}),
-                "fps": ("INT", {"default": 0, "min": 0, "max": 100}),
+                "output_framerate": ("FLOAT", {
+                    "default": 30,
+                    "min": 1,
+                    "max": 120,
+                    "step": 1,
+                    "display": "number",
+                }),
             },
         }
 
@@ -25,7 +31,7 @@ class Video2Frames:
     OUTPUT_NODE = True
     CATEGORY = "🔥FFmpeg"
   
-    def video2frames(self, video_path, output_path, frames_max_width, fps):
+    def video2frames(self, video_path, output_path, frames_max_width, output_framerate):
         try:
             video_path = os.path.abspath(video_path).strip()
             output_path = os.path.abspath(output_path).strip()
@@ -94,6 +100,8 @@ class Video2Frames:
             frame_path = os.path.join(output_path, 'frames')
             os.makedirs(frame_path, exist_ok=True) # exist_ok=True表示如果目录已经存在，不会引发异常
 
+            command = ['ffmpeg', '-i', video_path]
+
             # 计算输出宽度和高度以保持比例
             if frames_max_width > 0:
                 if width > frames_max_width:
@@ -105,17 +113,13 @@ class Video2Frames:
             else:
                 out_width = width
                 out_height = height
+            command.extend(['-vf', f'scale={out_width}:{out_height}'])
 
-            video_filter_param = f'scale={out_width}:{out_height}'
+            if output_framerate > 0:
+                command.extend(['-r', str(output_framerate)])
 
-            if fps > 0:
-                video_filter_param += f',fps={fps}'
+            command.append(os.path.join(frame_path, 'frame_%08d.png'))
 
-            command = [
-                'ffmpeg', '-i', video_path,  # 输入视频路径
-                '-vf', video_filter_param,  # 使用scale滤镜缩放帧
-                os.path.join(frame_path, 'frame_%08d.png')  # 输出帧路径
-            ]
             # 执行命令并检查错误
             result = subprocess.run(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             # 检查返回码
